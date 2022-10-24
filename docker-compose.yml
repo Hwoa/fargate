@@ -1,0 +1,38 @@
+version: '3'
+services:
+
+  # LabAdmin側 +++++++++++++++++++++++++++++++++++++++++++++++++
+  fargate-nginx:
+    image: nginx:1.7
+    container_name: "fargate-nginx"
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/data1/home/fargate
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    links:
+      - fargate-php:php
+    hostname: fargate-nginx
+
+  fargate-php:
+    build:
+      context: ./docker/php
+    container_name: "fargate-php"
+    volumes:
+      - ./docker/php:/usr/local/etc/php
+      - .:/data1/home/fargate
+    links:
+      - fargate-postgres
+    hostname: fargate-php
+
+  # postgres
+  fargate-postgres:
+    image: postgres:10
+    container_name: "fargate-postgres"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    ports:
+      - "8432:5432"
+    volumes:
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
